@@ -44,11 +44,19 @@ def find_best_response(question, qa_data):
 
     for entry in qa_data:
         for answer in entry['answers']:
+            # Ensure that the answer is not empty
+            if not answer.strip():
+                continue
             # Evaluate each answer against the question
-            result = qa_pipeline({'question': question, 'context': answer})
-            if result['score'] > best_score:
-                best_score = result['score']
-                best_response = result['answer']
+            try:
+                result = qa_pipeline({'question': question, 'context': answer})
+                if result['score'] > best_score:
+                    best_score = result['score']
+                    best_response = result['answer']
+            except Exception as e:
+                # Catch any errors from the pipeline and continue
+                st.error(f"Error during pipeline execution: {e}")
+                continue
     
     return best_response
 
@@ -75,7 +83,7 @@ if uploaded_file:
     
     # Question input
     user_question = st.text_input("Ask a question:")
-    
+
     if user_question:
         # Find the best response
         response = find_best_response(user_question, qa_data)
